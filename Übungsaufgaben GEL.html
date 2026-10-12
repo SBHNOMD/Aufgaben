@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GEL- Grundlagen Elektronik</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- KaTeX CSS & JS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+    <style>
+        body { -webkit-tap-highlight-color: transparent; }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen font-sans pb-12">
+
+    <!-- Header mit Home-Link -->
+    <header class="bg-slate-800 border-b border-slate-700 p-4 sticky top-0 z-10 shadow-md">
+        <div class="max-w-md mx-auto flex justify-between items-center">
+            <button onclick="showMenu()" class="text-lg font-bold text-amber-400 hover:text-amber-300 transition-colors text-left flex items-center gap-1">
+                ⚡ GEL- Grundlagen Elektronik
+            </button>
+            <span id="quiz-title" class="text-xs font-semibold bg-slate-700 px-2.5 py-1 rounded text-slate-300">Menü</span>
+        </div>
+    </header>
+
+    <main class="max-w-md mx-auto p-4">
+
+        <!-- MENÜVIEW -->
+        <div id="menu-view" class="space-y-4 mt-4">
+            <button onclick="startQuiz('block1')" class="w-full bg-slate-800 hover:bg-slate-700 border border-slate-600 p-5 rounded-xl flex flex-col items-start transition-all active:scale-[0.98]">
+                <span class="text-xs font-semibold text-amber-400 uppercase tracking-wider mb-1">Themenblock 1</span>
+                <span class="text-lg font-bold text-slate-100">Grundgrößen & Messtechnik</span>
+                <span class="text-xs text-slate-400 mt-2">Grundgrößen, Multimeter, Oszilloskop, Reihen-/Parallelschaltung, P & W</span>
+            </button>
+
+            <button onclick="startQuiz('block2')" class="w-full bg-slate-800 hover:bg-slate-700 border border-slate-600 p-5 rounded-xl flex flex-col items-start transition-all active:scale-[0.98]">
+                <span class="text-xs font-semibold text-amber-400 uppercase tracking-wider mb-1">Themenblock 2</span>
+                <span class="text-lg font-bold text-slate-100">Schaltungstechnik, LEDs & Praxis</span>
+                <span class="text-xs text-slate-400 mt-2">Selbsthaltung, Leuchtdioden (LED), Leiterkarte, Verbindungstechnik, Schaltpläne</span>
+            </button>
+        </div>
+
+        <!-- QUIZVIEW -->
+        <div id="quiz-view" class="hidden space-y-6 mt-2">
+            <!-- Progress Bar -->
+            <div class="space-y-2">
+                <div class="flex justify-between text-xs text-slate-400">
+                    <span id="progress-text">Frage 1 von 26</span>
+                    <span id="difficulty-badge" class="font-semibold text-emerald-400">Einfach</span>
+                </div>
+                <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+                    <div id="progress-bar" class="bg-amber-400 h-full w-0 transition-all duration-300"></div>
+                </div>
+            </div>
+
+            <!-- Question Card -->
+            <div class="bg-slate-800 p-5 rounded-xl border border-slate-700 shadow-md">
+                <p id="question-text" class="text-base font-medium text-slate-100 leading-relaxed mb-6"></p>
+
+                <!-- Options -->
+                <div id="options-container" class="space-y-3"></div>
+            </div>
+
+            <!-- Navigation Buttons -->
+            <div class="space-y-3">
+                <div class="flex justify-between gap-3">
+                    <button id="prev-btn" onclick="prevQuestion()" class="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-300 py-3 rounded-lg text-sm font-semibold border border-slate-700 disabled:opacity-30">
+                        Zurück
+                    </button>
+                    <button id="next-btn" onclick="nextQuestion()" class="flex-1 bg-amber-500 hover:bg-amber-400 text-slate-950 py-3 rounded-lg text-sm font-bold shadow transition-all">
+                        Weiter
+                    </button>
+                </div>
+                <button onclick="finishQuiz()" class="w-full bg-slate-800 hover:bg-slate-700 text-amber-400 py-2.5 rounded-lg text-xs font-semibold border border-slate-700 flex items-center justify-center gap-1.5">
+                    📊 Direkt zur Auswertung
+                </button>
+            </div>
+        </div>
+
+        <!-- RESULTVIEW -->
+        <div id="result-view" class="hidden space-y-6 mt-4">
+            <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 text-center space-y-4 shadow-lg">
+                <h2 class="text-xl font-bold text-slate-100">Ergebnis</h2>
+                <div class="text-4xl font-extrabold text-amber-400" id="result-score">0 / 26</div>
+                <p class="text-sm text-slate-300" id="result-feedback"></p>
+                <div class="p-3 bg-slate-900/60 rounded-lg text-xs text-slate-400 border border-slate-700/50">
+                    💡 <i>Tipp: Tippe unten auf eine Frage, um direkt dorthin zu springen und deine Antwort zu korrigieren! Falsche und unbeantwortete Fragen verraten nicht die Lösung.</i>
+                </div>
+            </div>
+
+            <!-- Review List -->
+            <div id="review-container" class="space-y-3"></div>
+
+            <div class="flex flex-col gap-3 pt-2">
+                <button onclick="reviewAndCorrect()" class="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 py-3 rounded-lg text-sm font-bold shadow">
+                    Erste offene/falsche Frage bearbeiten
+                </button>
+                <button onclick="showMenu()" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 py-3 rounded-lg text-sm font-semibold border border-slate-700">
+                    Hauptmenü
+                </button>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        const questionsData = {
+            block1: [
+                // Einfach (1-8)
+                { q: "In welcher Einheit wird die elektrische Stromstärke gemessen?", a: ["Volt (V)", "Ampere (A)", "Ohm (Ω)"], c: 1, d: "Einfach" },
+                { q: "Welches Formelzeichen wird für den elektrischen Widerstand verwendet?", a: ["R", "U", "I"], c: 0, d: "Einfach" },
+                { q: "Wie wird ein Amperemeter korrekt zur Messung des Stroms eines Verbrauchers geschaltet?", a: ["Parallel zum Verbraucher", "In Reihe zum Verbraucher", "Beliebig"], c: 1, d: "Einfach" },
+                { q: "Welche Aussage zum Innenwiderstand eines idealen Voltmeters ist korrekt?", a: ["Er ist möglichst nahe 0 Ω", "Er ist unendlich hoch (sehr groß)", "Er beträgt genau 50 Ω"], c: 1, d: "Einfach" },
+                { q: "Was passiert mit dem Gesamtwiderstand bei einer Reihenschaltung von zwei Widerständen?", a: ["Er wird kleiner als der kleinste Einzelwiderstand", "Er ist die Summe der Einzelwiderstände", "Er bleibt unverändert"], c: 1, d: "Einfach" },
+                { q: "Wie lautet die Formel zur Berechnung der elektrischen Leistung $P$?", a: ["$P = U \\cdot I$", "$P = U / I$", "$P = I / R$"], c: 0, d: "Einfach" },
+                { q: "Welches Gerät stellt Wechselspannungsverläufe optisch auf einem Bildschirm dar?", a: ["Duspol", "Digitalmultimeter", "Oszilloskop"], c: 2, d: "Einfach" },
+                { q: "Welche Einheit wird für die elektrische Arbeit $W$ im Haushalt/Industrie üblicherweise verwendet?", a: ["Kilowattstunde (kWh)", "Ampere pro Stunde (Ah)", "Voltampere (VA)"], c: 0, d: "Einfach" },
+                // Mittel (9-17)
+                { q: "Wie lautet das Ohmsche Gesetz im Wortlaut?", a: ["Der Strom ist an einem konstanten Widerstand direkt proportional zur Spannung", "Der Strom ist an einem konstanten Widerstand umgekehrt proportional zur Spannung", "Die Spannung ist bei veränderlichem Strom immer umgekehrt proportional zum Widerstand"], c: 0, d: "Mittel" },
+                { q: "An einem Widerstand von $100\\,\\Omega$ liegt eine Spannung von $24\\,\\text{V}$ an. Wie groß ist der Strom $I$?", a: ["$2,4\\,\\text{A}$", "$0,24\\,\\text{A}$", "$2,4\\,\\text{mA}$"], c: 1, d: "Mittel" },
+                { q: "Was muss vor einer Widerstandsmessung an einem Bauteil zwingend beachtet werden?", a: ["Die Schaltung muss unter Spannung stehen", "Die Schaltung muss spannungsfrei sein", "Das Messgerät muss geerdet werden"], c: 1, d: "Mittel" },
+                { q: "Welche Spannung zeigt ein Digitalmultimeter im Messbereich 'AC' bei einer sinusförmigen Wechselspannung an?", a: ["Den Spitzenwert $U_s$", "Den Effektivwert $U_{\\text{eff}}$", "Den Gleichwert"], c: 1, d: "Mittel" },
+                { q: "Auf dem Oszilloskop sind 4 Kästchen für eine volle Periode (T) eingestellt. Time/Div steht auf $2\\,\\text{ms/Div}$. Wie groß ist die Frequenz $f$?", a: ["$125\\,\\text{Hz}$", "$250\\,\\text{Hz}$", "$500\\,\\text{Hz}$"], c: 0, d: "Mittel" },
+                { q: "Zwei baugleiche Widerstände ($R_1 = R_2 = 100\\,\\Omega$) sind parallel geschaltet. Wie groß ist $R_{\\text{ges}}$?", a: ["$200\\,\\Omega$", "$100\\,\\Omega$", "$50\\,\\Omega$"], c: 2, d: "Mittel" },
+                { q: "In welcher Schaltung ist die Spannung an allen Verbrauchern identisch?", a: ["Reihenschaltung", "Parallelschaltung", "Gemischte Schaltung"], c: 1, d: "Mittel" },
+                { q: "Ein Gerät nimmt bei $230\\,\\text{V}$ einen Strom von $10\\,\\text{A}$ auf. Welche Leistung hat es?", a: ["$23\\,\\text{W}$", "$2,3\\,\\text{kW}$", "$2300\\,\\text{kW}$"], c: 1, d: "Mittel" },
+                { q: "Ein Motor mit $1,5\\,\\text{kW}$ läuft $4$ Stunden lang. Wie viel Arbeit $W$ verbraucht er?", a: ["$6\\,\\text{kWh}$", "$0,375\\,\\text{kWh}$", "$600\\,\\text{Wh}$"], c: 0, d: "Mittel" },
+                { q: "Was beschreibt der 'Volts/Div'-Drehknopf am analogen Oszilloskop?", a: ["Die Zeitablenkung pro Kästchen X-Richtung", "Die Spannungsskalierung pro Kästchen in Y-Richtung", "Die Helligkeit der Elektronenstrahlröhre"], c: 1, d: "Mittel" },
+                // Schwer (18-26)
+                { q: "Welches Problem entsteht bei einer Spannungsmessung mit einem niederohmigen Voltmeter in einer hochohmigen Schaltung?", a: ["Messwerk brennt sofort durch", "Schaltungsbeeinflussung (Messfehler durch Belastung)", "Kein Einfluss auf das Ergebnis"], c: 1, d: "Schwer" },
+                { q: "Ein Sinussignal hat auf dem Oszilloskop eine Spitze-Tal-Höhe ($U_{ss}$) von 6 Kästchen bei $5\\,\\text{V/Div}$. Wie groß ist der Effektivwert $U_{\\text{eff}}$?", a: ["$30\\,\\text{V}$", "$15\\,\\text{V}$", "$10,6\\,\\text{V}$"], c: 2, d: "Schwer" },
+                { q: "Drei Widerstände ($10\\,\\Omega$, $20\\,\\Omega$, $30\\,\\Omega$) liegen an $60\\,\\text{V}$ in Reihe. Wie groß ist der Spannungsabfall $U_2$ an $R_2$ ($20\\,\\Omega$)?", a: ["$10\\,\\text{V}$", "$20\\,\\text{V}$", "$30\\,\\text{V}$"], c: 1, d: "Schwer" },
+                { q: "In einer Parallelschaltung fließt ein Gesamtstrom von $5\\,\\text{A}$. $I_1 = 2\\,\\text{A}$. Wie verhalten sich die Widerstände $R_1$ zu $R_2$?", a: ["$R_1$ ist kleiner als $R_2$", "$R_1$ ist größer als $R_2$", "$R_1$ und $R_2$ sind gleich groß"], c: 1, d: "Schwer" },
+                { q: "Ein Widerstand wird bei konstanter Spannung durch einen kleineren Widerstand ersetzt. Was passiert mit der Leistung?", a: ["Sie sinkt proportional", "Sie steigt an", "Sie bleibt konstant"], c: 1, d: "Schwer" },
+                { q: "Auf welchen Messbereich sollte das Multimeter vor Beginn einer Messung mit unbekannter Größe eingestellt werden?", a: ["Auf den größten Messbereich", "Auf den kleinsten Messbereich", "Das ist völlig egal"], c: 0, d: "Schwer" },
+                { q: "Welche Auswirkung hat der Innenwiderstand einer nicht idealen Spannungsquelle bei Belastung?", a: ["Die Klemmenspannung steigt", "Die Klemmenspannung sinkt", "Der Kurzschlussstrom wird unendlich groß"], c: 1, d: "Schwer" },
+                { q: "Ein Drahtwiderstand wird bei gleicher Länge im Durchmesser verdoppelt. Wie verändert sich sein Widerstand $R$?", a: ["Er halbiert sich", "Er viertelt sich", "Er verdoppelt sich"], c: 1, d: "Schwer" }
+            ],
+            block2: [
+                // Einfach (1-8)
+                { q: "Welche Aufgabe hat der Schließerkontakt des Schützes bei einer einfachen Selbsthalteschaltung?", a: ["Er schaltet die Meldeleuchte aus", "Er überbrückt den Taster 'EIN' nach dem Loslassen", "Er trennt den Steuerstromkreis bei Überlast"], c: 1, d: "Einfach" },
+                { q: "Wie wird der Aus-Taster (Öffner) in einer Standard-Selbsthalteschaltung verdrahtet?", a: ["In Reihe zur Relaisspule", "Parallel zum Ein-Taster", "Parallel zur Relaiszuleitung"], c: 0, d: "Einfach" },
+                { q: "Welche Farbe hat üblicherweise die Taste eines AUS-Tasters am Industrie-Bedienfeld?", a: ["Grün", "Rot", "Gelb"], c: 1, d: "Einfach" },
+                { q: "Wie erkennt man bei einer gewöhnlichen bedrahteten Leuchtdiode (LED) den Anodenanschluss (+)?", a: ["Am kürzeren Anschlussbein und der abgeflachten Gehäuseseite", "Am längeren Anschlussbein", "Die Anschlüsse sind beliebig polbar"], c: 1, d: "Einfach" },
+                { q: "Welches Werkzeug ist ideal zum Anziehen von Schraubklemmen auf einer Platine/Reihenklemme?", a: ["Eine Kombizange", "Der kleinste passende Schraubendreher", "Der größte passende Schraubendreher"], c: 2, d: "Einfach" },
+                { q: "Was ist der Hauptvorteil einer Federzugklemme (z. B. WAGO/Cage Clamp) gegenüber einer Schraubklemme?", a: ["Dauerhaft gleichbleibender Kontaktdruck und vibrationsfest", "Kann nur einmal verwendet werden", "Benötigt kein Abisolieren"], c: 0, d: "Einfach" },
+                { q: "Wie wird ein Taster im Stromlaufplan genannt, der im unbetätigten Zustand offen ist?", a: ["Öffner", "Schließer", "Wechsler"], c: 1, d: "Einfach" },
+                { q: "Was bedeutet der Begriff Durchlassspannung $U_F$ bei einer Leuchtdiode?", a: ["Die maximale Sperrspannung", "Die Spannung, ab der die LED anfängt nennenswert zu leiten und zu leuchten", "Die Spannung, bei der die LED zerstört wird"], c: 1, d: "Einfach" },
+                // Mittel (9-17)
+                { q: "Warum benötigt eine Leuchtdiode (LED) an einer Betriebsspannung fast immer einen Vorwiderstand?", a: ["Damit die LED nicht flackert", "Zur Strombegrenzung, da der Strom nach Überschreiten der Schwellspannung steil ansteigt", "Um die Wechselspannung in Gleichspannung umzuwandeln"], c: 1, d: "Mittel" },
+                { q: "Welcher typische Fehler entsteht beim Weichlöten durch eine zu kalte Lötspitze?", a: ["Lötbrücke", "Mangelhafte Benetzung", "Verbrannte Platinenleiterbahn"], c: 1, d: "Mittel" },
+                { q: "Welche Aufgabe hat das Flussmittel beim Löten auf der Leiterkarte?", a: ["Gleichmäßige Wärmeleitung verhindern", "Oxidschichten entfernen und Neubildung verhindern", "Den Schmelzpunkt des Kupfers senken"], c: 1, d: "Mittel" },
+                { q: "Warum müssen feindrahtige (flexible) Leiter beim Anschließen an Standard-Schraubklemmen mit Aderendhülsen versehen werden?", a: ["Damit die Leiter frei von Isolation bleiben", "Damit die einzelnen Kupferdrähte beim Festschrauben nicht beschädigt oder durchgetrennt werden", "Weil feindrahtige Leiter ohne Hülse nicht leiten"], c: 1, d: "Mittel" },
+                { q: "Eine rote LED ($U_F = 2,0\\,\\text{V}$, $I_F = 20\\,\\text{mA}$) soll an $U_0 = 12\\,\\text{V}$ betrieben werden. Wie groß ist der erforderliche Vorwiderstand $R_V$?", a: ["$500\\,\\Omega$", "$600\\,\\Omega$", "$100\\,\\Omega$"], c: 0, d: "Mittel" },
+                { q: "Welche Klemmenbezeichnung tragen üblicherweise die Spulenanschlüsse eines elektromechanischen Schützes?", a: ["13 / 14", "A1 / A2", "11 / 12"], c: 1, d: "Mittel" },
+                { q: "Was beschreibt der Begriff 'Vorrang AUS' bei einer Tasterschaltung?", a: ["Der AUS-Taster schaltet ab, selbst wenn gleichzeitig EIN gedrückt wird", "Der EIN-Taster schaltet immer ein", "Die Schaltung reagiert nicht auf AUS"], c: 0, d: "Mittel" },
+                { q: "Wozu dient eine Klemmleiste in der industriellen Verdrahtung?", a: ["Zur geordneten und lösbaren Verbindung der externen Feldverdrahtung mit der Schaltschrank- bzw. Schaltungstechnik", "Zum Umwandeln von Wechselspannung in Gleichspannung", "Als Ersatz für Sicherungen und Schutzschalter"], c: 0, d: "Mittel" },
+                { q: "Wie verhält sich der Strom $I$ einer LED, wenn die angelegte Spannung knapp über der Durchlassspannung $U_F$ weiter erhöht wird?", a: ["Er steigt streng linear nach dem ohmschen Gesetz", "Er steigt exponentiell/sehr steil an (Gefahr der Überlastung)", "Er bleibt konstant"], c: 1, d: "Mittel" },
+                // Schwer (18-25)
+                { q: "Eine Selbsthaltung fällt direkt nach dem Loslassen des EIN-Tasters wieder ab. Was ist die wahrscheinlichste Ursache?", a: ["AUS-Taster klemmt geschlossen", "Selbsthaltekontakt (Schließer) ist fehlerhaft/nicht parallel zum EIN-Taster verdrahtet", "Spulenspannung ist zu hoch"], c: 1, d: "Schwer" },
+                { q: "Welche Folge hat ein zu langes Erhitzen (über 5 Sekunden) eines Lötpads auf einer SMD-/THT-Leiterkarte?", a: ["Lötpad bzw. Leiterbahn löst sich vom Trägermaterial (Basismaterial)", "Lötzinn wird supraleitend", "Flussmittel regeneriert sich"], c: 0, d: "Schwer" },
+                { q: "In welchem Fall ist die Verwendung von Aderendhülsen bei Federzugklemmen empfohlen?", a: ["Bei starren Einzeladern", "Bei feindrahtigen Leitern zur einfacheren Einführung ohne Beschädigung von Einzeldrähten", "Bei Federzugklemmen grundsätzlich verboten"], c: 1, d: "Schwer" },
+                { q: "Warum dürfen mehrere feindrahtige Leiter nicht ungepresst zusammen in eine Schraubklemme geklemmt werden?", a: ["Gefahr von Aderbrüchen und hoher Übergangswiderstand durch lockere Einzeldrähte", "Lötverbindung wird dadurch instabil", "Spannung verdoppelt sich"], c: 0, d: "Schwer" },
+                { q: "Wie sieht die U/I-Kennlinie einer Diode/LED in Durchlassrichtung aus?", a: ["Waagerechte Gerade", "Nichtlinearer Verlauf (zunächst nahe Null, ab der Schwellspannung steiler Anstieg)", "Streng proportionale Ursprungsgerade"], c: 1, d: "Schwer" },
+                { q: "Was beschreibt die Benetzungsphase beim Lötvorgang?", a: ["Das Erstarren des Zinns", "Das Ausbreiten des flüssigen Lots auf dem gereinigten, erwärmten Metall", "Das Auftragen des Lötstopplacks"], c: 1, d: "Schwer" },
+                { q: "Welches Problem tritt auf, wenn Schraubverbindungen mit zu hohem Drehmoment angezogen werden?", a: ["Übergangswiderstand sinkt auf 0", "Gewinde reißt aus oder Leiter wird abgequetscht/beschädigt", "Kontakt wird federnd"], c: 1, d: "Schwer" },
+                { q: "Wie wird ein Drahtbruch in der Zuleitung des AUS-Tasters einer Selbsthalteschaltung wirken?", a: ["Schaltung lässt sich nicht mehr einschalten", "Schütz zieht sofort dauerhaft an", "Schaltung arbeitet normal weiter"], c: 0, d: "Schwer" }
+            ]
+        };
+
+        let currentBlock = '';
+        let currentQuestions = [];
+        let userAnswers = [];
+        let currentIndex = 0;
+
+        function renderKaTeX() {
+            setTimeout(() => {
+                if (typeof renderMathInElement === 'function') {
+                    renderMathInElement(document.body, {
+                        delimiters: [
+                            {left: '$$', right: '$$', display: true},
+                            {left: '$', right: '$', display: false}
+                        ],
+                        throwOnError: false
+                    });
+                }
+            }, 10);
+        }
+
+        function showMenu() {
+            document.getElementById('menu-view').classList.remove('hidden');
+            document.getElementById('quiz-view').classList.add('hidden');
+            document.getElementById('result-view').classList.add('hidden');
+            document.getElementById('quiz-title').innerText = "Menü";
+        }
+
+        function startQuiz(blockKey) {
+            currentBlock = blockKey;
+            currentQuestions = questionsData[blockKey];
+            userAnswers = new Array(currentQuestions.length).fill(null);
+            currentIndex = 0;
+
+            document.getElementById('menu-view').classList.add('hidden');
+            document.getElementById('result-view').classList.add('hidden');
+            document.getElementById('quiz-view').classList.remove('hidden');
+
+            document.getElementById('quiz-title').innerText = blockKey === 'block1' ? "Block 1" : "Block 2";
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            const q = currentQuestions[currentIndex];
+            document.getElementById('progress-text').innerText = `Frage ${currentIndex + 1} von ${currentQuestions.length}`;
+            document.getElementById('difficulty-badge').innerText = q.d;
+            
+            const badge = document.getElementById('difficulty-badge');
+            if(q.d === 'Einfach') badge.className = "font-semibold text-emerald-400";
+            else if(q.d === 'Mittel') badge.className = "font-semibold text-amber-400";
+            else badge.className = "font-semibold text-rose-400";
+
+            document.getElementById('progress-bar').style.width = `${((currentIndex + 1) / currentQuestions.length) * 100}%`;
+            document.getElementById('question-text').innerText = q.q;
+
+            const optionsContainer = document.getElementById('options-container');
+            optionsContainer.innerHTML = '';
+
+            q.a.forEach((optText, optIdx) => {
+                const isSelected = userAnswers[currentIndex] === optIdx;
+                const button = document.createElement('button');
+                button.className = `w-full text-left p-4 rounded-lg border transition-all text-sm font-medium flex items-center justify-between ${
+                    isSelected 
+                    ? 'bg-amber-500/20 border-amber-400 text-amber-200' 
+                    : 'bg-slate-700/50 border-slate-600 text-slate-200 hover:bg-slate-700'
+                }`;
+                button.onclick = () => selectOption(optIdx);
+                button.innerHTML = `
+                    <span>${optText}</span>
+                    <span class="w-5 h-5 rounded-full border border-slate-400 flex items-center justify-center text-xs ${isSelected ? 'border-amber-400 bg-amber-400 text-slate-950 font-bold' : ''}">
+                        ${isSelected ? '✓' : ''}
+                    </span>
+                `;
+                optionsContainer.appendChild(button);
+            });
+
+            document.getElementById('prev-btn').disabled = currentIndex === 0;
+            document.getElementById('next-btn').innerText = currentIndex === currentQuestions.length - 1 ? "Auswerten" : "Weiter";
+
+            renderKaTeX();
+        }
+
+        function selectOption(optIdx) {
+            userAnswers[currentIndex] = optIdx;
+            loadQuestion();
+        }
+
+        function prevQuestion() {
+            if (currentIndex > 0) {
+                currentIndex--;
+                loadQuestion();
+            }
+        }
+
+        function nextQuestion() {
+            if (currentIndex < currentQuestions.length - 1) {
+                currentIndex++;
+                loadQuestion();
+            } else {
+                finishQuiz();
+            }
+        }
+
+        function jumpToQuestion(index) {
+            currentIndex = index;
+            document.getElementById('result-view').classList.add('hidden');
+            document.getElementById('quiz-view').classList.remove('hidden');
+            loadQuestion();
+        }
+
+        function finishQuiz() {
+            document.getElementById('quiz-view').classList.add('hidden');
+            document.getElementById('result-view').classList.remove('hidden');
+
+            let score = 0;
+            const reviewContainer = document.getElementById('review-container');
+            reviewContainer.innerHTML = '';
+
+            currentQuestions.forEach((q, idx) => {
+                const isAnswered = userAnswers[idx] !== null;
+                const isCorrect = isAnswered && userAnswers[idx] === q.c;
+                if (isCorrect) score++;
+
+                let cardStyle = "";
+                let icon = "";
+                let statusText = "";
+
+                if (!isAnswered) {
+                    cardStyle = "bg-amber-950/20 border-amber-700/50 text-amber-200 hover:bg-amber-900/30";
+                    icon = "?";
+                    statusText = "Nicht beantwortet (Tippe zum Antworten)";
+                } else if (isCorrect) {
+                    cardStyle = "bg-emerald-950/30 border-emerald-800/50 text-emerald-200 hover:bg-emerald-900/30";
+                    icon = "✓";
+                    statusText = `Deine Antwort: ${q.a[userAnswers[idx]]}`;
+                } else {
+                    cardStyle = "bg-rose-950/30 border-rose-800/50 text-rose-200 hover:bg-rose-900/30";
+                    icon = "✗";
+                    statusText = `Deine Antwort: ${q.a[userAnswers[idx]]} (Tippe zum Korrigieren)`;
+                }
+
+                const reviewCard = document.createElement('div');
+                reviewCard.className = `p-4 rounded-lg border text-sm flex items-start justify-between cursor-pointer transition-all ${cardStyle}`;
+                reviewCard.onclick = () => jumpToQuestion(idx);
+
+                reviewCard.innerHTML = `
+                    <div class="space-y-1">
+                        <div class="font-semibold">Frage ${idx + 1}: ${q.q}</div>
+                        <div class="text-xs opacity-80">${statusText}</div>
+                    </div>
+                    <span class="text-base font-bold ml-2 shrink-0">${icon}</span>
+                `;
+                reviewContainer.appendChild(reviewCard);
+            });
+
+            document.getElementById('result-score').innerText = `${score} / ${currentQuestions.length}`;
+            
+            const feedback = document.getElementById('result-feedback');
+            if (score === currentQuestions.length) feedback.innerText = "Perfekt! Du bist bestens auf die Prüfung vorbereitet.";
+            else if (score >= 20) feedback.innerText = "Starkes Ergebnis! Schau dir die verbleibenden Fehler noch einmal an.";
+            else if (score >= 13) feedback.innerText = "Solide Grundlage. Gehe die rot/gelb markierten Fragen noch einmal durch.";
+            else feedback.innerText = "Hier besteht noch Wiederholungsbedarf. Nutze die Fachbücher und Unterlagen zum Nachschlagen!";
+
+            renderKaTeX();
+        }
+
+        function reviewAndCorrect() {
+            const firstUnfinished = userAnswers.findIndex((ans, idx) => ans === null || ans !== currentQuestions[idx].c);
+            if (firstUnfinished !== -1) {
+                jumpToQuestion(firstUnfinished);
+            } else {
+                jumpToQuestion(0);
+            }
+        }
+    </script>
+</body>
+</html>
